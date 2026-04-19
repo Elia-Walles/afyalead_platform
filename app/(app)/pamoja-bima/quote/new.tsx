@@ -16,7 +16,9 @@ export default function NewQuoteScreen() {
     return { provider, pkg };
   }, [packageId, providerId, providers]);
 
-  if (!selected.provider || !selected.pkg) {
+  const provider = selected.provider;
+  const pkg = selected.pkg;
+  if (!provider || !pkg) {
     return (
       <Screen title="Quote Setup Missing">
         <Link href="/pamoja-bima" style={styles.backLink}>Back to providers</Link>
@@ -25,7 +27,7 @@ export default function NewQuoteScreen() {
   }
 
   const handleCreate = () => {
-    const quote = createQuote(selected.provider.id, selected.pkg.id, Number(membersCount) || 1);
+    const quote = createQuote(provider.id, pkg.id, Number(membersCount) || 1);
     if (!quote) return;
     router.push({ pathname: '/pamoja-bima/quote/payment', params: { quoteId: quote.id } });
   };
@@ -33,9 +35,9 @@ export default function NewQuoteScreen() {
   return (
     <Screen title="Quote">
       <Surface>
-        <Text style={styles.title}>{selected.provider.name} - {selected.pkg.name}</Text>
-        <Text style={styles.meta}>Base monthly premium: TZS {selected.pkg.monthlyPremium.toLocaleString()}</Text>
-        <Text style={styles.meta}>Benefit scope: {selected.pkg.benefits.join(', ')}</Text>
+        <Text style={styles.title}>{provider.name} - {pkg.name}</Text>
+        <Text style={styles.meta}>Base monthly premium: TZS {pkg.monthlyPremium.toLocaleString()}</Text>
+        <Text style={styles.meta}>Benefit scope: {pkg.benefits.join(', ')}</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"

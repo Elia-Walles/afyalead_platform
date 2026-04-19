@@ -18,7 +18,14 @@ export default function QuotesScreen() {
             <Text style={styles.meta}>Provider: {providers.find((p) => p.id === quote.providerId)?.name}</Text>
             <Text style={styles.meta}>Package: {quote.packageName}</Text>
             <Text style={styles.meta}>Status: {quote.status}</Text>
-            <Text style={styles.meta}>Premium: TZS {quote.monthlyPremium.toLocaleString()}</Text>
+            <Text style={styles.meta}>
+              {quote.amountDue != null
+                ? `Amount: TZS ${quote.amountDue.toLocaleString()}`
+                : `Premium: TZS ${quote.monthlyPremium.toLocaleString()}`}
+            </Text>
+            {quote.sumInsured != null ? (
+              <Text style={styles.meta}>Sum insured: TZS {quote.sumInsured.toLocaleString()}</Text>
+            ) : null}
           </Surface>
         ))
       )}

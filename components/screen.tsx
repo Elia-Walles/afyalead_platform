@@ -1,5 +1,9 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+/** Space for scooped tab bar (see `ScoopedTabBar`). */
+const TAB_BAR_INSET = 118;
 
 type ScreenProps = {
   title: string;
@@ -8,9 +12,15 @@ type ScreenProps = {
 };
 
 export function Screen({ title, subtitle, children }: ScreenProps) {
+  const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: 28 + TAB_BAR_INSET + insets.bottom },
+        ]}
+      >
         <Text style={styles.title}>{title}</Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         <View style={styles.body}>{children}</View>
@@ -19,8 +29,8 @@ export function Screen({ title, subtitle, children }: ScreenProps) {
   );
 }
 
-export function Surface({ children }: { children: React.ReactNode }) {
-  return <View style={styles.surface}>{children}</View>;
+export function Surface({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
+  return <View style={[styles.surface, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -31,7 +41,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 18,
-    paddingBottom: 32,
   },
   title: {
     color: '#0E2A1A',

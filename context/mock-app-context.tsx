@@ -1,3 +1,10 @@
+import {
+  type BritamFamilyMemberInput,
+  type BritamPaymentFrequency,
+  type BritamQuoteProduct,
+  britamPackageLabel,
+  calculateBritamPremium,
+} from '@/constants/britam-quote-products';
 import React, { createContext, useContext, useMemo, useState } from 'react';
 
 export type InsuranceProviderId = 'nhif' | 'jubilee' | 'britam' | 'assemble';
@@ -28,11 +35,20 @@ export type InsuranceQuote = {
   providerId: InsuranceProviderId;
   packageId: string;
   packageName: string;
+  /** Monthly premium (generic quotes) or display baseline; see amountDue for payment. */
   monthlyPremium: number;
   membersCount: number;
   status: QuoteStatus;
   reference: string;
   createdAt: string;
+  /** Amount to collect at payment (Britam wizard uses calculated period premium). */
+  amountDue?: number;
+  sumInsured?: number;
+  paymentFrequency?: BritamPaymentFrequency;
+  productName?: string;
+  productVariant?: string;
+  britamAddOns?: string[];
+  britamFamilyMembers?: BritamFamilyMemberInput[];
 };
 
 export type InsurancePayment = {
@@ -65,10 +81,13 @@ export type InsuranceClaim = {
   status: ClaimStatus;
 };
 
+/** Display order on Pamoja Bima home: NHIF → BRITAM → ASSEMBLE → JUBILEE */
+export const PAMOJA_PROVIDER_ORDER: InsuranceProviderId[] = ['nhif', 'britam', 'assemble', 'jubilee'];
+
 const providers: InsuranceProvider[] = [
   {
     id: 'nhif',
-    name: 'IDNHIF',
+    name: 'NHIF',
     shortDescription: 'Affordable public coverage with wide facility access.',
     themeColor: '#2B8A3E',
     packages: [
@@ -77,18 +96,8 @@ const providers: InsuranceProvider[] = [
     ],
   },
   {
-    id: 'jubilee',
-    name: 'Jubilee',
-    shortDescription: 'Comprehensive private plans for family and business.',
-    themeColor: '#1D9B5B',
-    packages: [
-      { id: 'silver', name: 'Silver Cover', monthlyPremium: 83000, annualLimit: 12000000, membersAllowed: 6, benefits: ['OPD', 'IPD', 'Emergency', 'Maternity'] },
-      { id: 'gold', name: 'Gold Cover', monthlyPremium: 115000, annualLimit: 20000000, membersAllowed: 8, benefits: ['OPD', 'IPD', 'Dental', 'Optical', 'International Referral'] },
-    ],
-  },
-  {
     id: 'britam',
-    name: 'Britam',
+    name: 'BRITAM',
     shortDescription: 'Flexible plans with rich post-purchase self-service.',
     themeColor: '#0A7C3A',
     packages: [
@@ -98,12 +107,22 @@ const providers: InsuranceProvider[] = [
   },
   {
     id: 'assemble',
-    name: 'Assemble',
+    name: 'ASSEMBLE',
     shortDescription: 'Modern digital-first insurance plans for all segments.',
     themeColor: '#2F9E44',
     packages: [
       { id: 'starter', name: 'Starter Care', monthlyPremium: 59000, annualLimit: 7000000, membersAllowed: 5, benefits: ['OPD', 'IPD', 'Emergency'] },
       { id: 'max', name: 'Max Care', monthlyPremium: 98000, annualLimit: 17000000, membersAllowed: 7, benefits: ['OPD', 'IPD', 'Dental', 'Optical', 'Chronic Support'] },
+    ],
+  },
+  {
+    id: 'jubilee',
+    name: 'JUBILEE',
+    shortDescription: 'Comprehensive private plans for family and business.',
+    themeColor: '#1D9B5B',
+    packages: [
+      { id: 'silver', name: 'Silver Cover', monthlyPremium: 83000, annualLimit: 12000000, membersAllowed: 6, benefits: ['OPD', 'IPD', 'Emergency', 'Maternity'] },
+      { id: 'gold', name: 'Gold Cover', monthlyPremium: 115000, annualLimit: 20000000, membersAllowed: 8, benefits: ['OPD', 'IPD', 'Dental', 'Optical', 'International Referral'] },
     ],
   },
 ];
@@ -120,6 +139,14 @@ type MockAppContextValue = {
   selectedRole: 'group' | 'admin' | 'officer';
   setSelectedRole: (role: 'group' | 'admin' | 'officer') => void;
   createQuote: (providerId: InsuranceProviderId, packageId: string, membersCount: number) => InsuranceQuote | null;
+  createBritamQuote: (input: {
+    product: BritamQuoteProduct;
+    paymentFrequency: BritamPaymentFrequency;
+    familyMembers: BritamFamilyMemberInput[];
+    addOnIds: string[];
+    /** `draft` = saved for later; `pending_payment` = ready to pay */
+    outcome: 'draft' | 'pending_payment';
+  }) => InsuranceQuote | null;
   payQuote: (quoteId: string, method: 'mobile_money' | 'card' | 'bank') => InsurancePolicy | null;
   completeKyc: (policyId: string) => void;
   submitClaim: (policyNumber: string, amount: number, reason: string) => void;
@@ -169,16 +196,54 @@ export function MockAppProvider({ children }: { children: React.ReactNode }) {
     return quote;
   };
 
+  const createBritamQuote: MockAppContextValue['createBritamQuote'] = ({
+    product,
+    paymentFrequency,
+    familyMembers,
+    addOnIds,
+    outcome,
+  }) => {
+    const { premium, sumInsured } = calculateBritamPremium({
+      product,
+      paymentFrequency,
+      familyMembers,
+      addOnIds,
+    });
+    const membersCount = 1 + familyMembers.length;
+    const quote: InsuranceQuote = {
+      id: makeRef('Q'),
+      providerId: 'britam',
+      packageId: product.id,
+      packageName: britamPackageLabel(product),
+      monthlyPremium: Math.round(premium / 12),
+      membersCount,
+      status: outcome === 'draft' ? 'draft' : 'pending_payment',
+      reference: makeRef('QT'),
+      createdAt: toIsoDate(),
+      amountDue: premium,
+      sumInsured,
+      paymentFrequency,
+      productName: product.name,
+      productVariant: product.variant,
+      britamAddOns: addOnIds,
+      britamFamilyMembers: familyMembers,
+    };
+    setQuotes((prev) => [quote, ...prev]);
+    return quote;
+  };
+
   const payQuote: MockAppContextValue['payQuote'] = (quoteId, method) => {
     const quote = quotes.find((q) => q.id === quoteId);
     if (!quote) return null;
+
+    const payAmount = quote.amountDue ?? quote.monthlyPremium;
 
     setQuotes((prev) => prev.map((q) => (q.id === quoteId ? { ...q, status: 'paid' } : q)));
     setPayments((prev) => [
       {
         id: makeRef('PAY'),
         quoteId,
-        amount: quote.monthlyPremium,
+        amount: payAmount,
         method,
         status: 'completed',
         paidAt: toIsoDate(),
@@ -227,6 +292,7 @@ export function MockAppProvider({ children }: { children: React.ReactNode }) {
       selectedRole,
       setSelectedRole,
       createQuote,
+      createBritamQuote,
       payQuote,
       completeKyc,
       submitClaim,

@@ -16,6 +16,8 @@ export default function AppShellLayout() {
       >
         <Stack.Screen name="home" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="microfinance" />
+        <Stack.Screen name="pamoja-bima" />
         <Stack.Screen name="transactions" />
         <Stack.Screen name="cards" />
         <Stack.Screen name="favourites" />

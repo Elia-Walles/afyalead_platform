@@ -4,9 +4,9 @@ export default function PamojaBimaLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="provider/[id]" />
-      <Stack.Screen name="quote/new" />
-      <Stack.Screen name="quote/payment" />
+      <Stack.Screen name="provider" />
+      <Stack.Screen name="britam" />
+      <Stack.Screen name="quote" />
       <Stack.Screen name="kyc" />
       <Stack.Screen name="virtual-card" />
       <Stack.Screen name="policies" />

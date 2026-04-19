@@ -32,8 +32,6 @@ export default function RootLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="register" />
             <Stack.Screen name="(app)" />
-            <Stack.Screen name="microfinance" />
-            <Stack.Screen name="pamoja-bima" />
             <Stack.Screen
               name="modal"
               options={{ presentation: 'modal', title: 'Modal', animation: 'slide_from_bottom' }}
