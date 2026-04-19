@@ -71,3 +71,13 @@ export const gradientHeroInner = ['#FFFFFF', '#F0FDFA'] as const;
 
 /** Tile body wash */
 export const gradientTileBody = ['#FAFAFA', '#FFFFFF'] as const;
+
+/**
+ * Pamoja Bima / insurance surfaces — matches [`app/(app)/home`] product tile (shield) accents.
+ * Use for Pamoja hub, quote wizards, and insurance CTAs so screens stay consistent with home.
+ */
+export const pamoja = {
+  greenDeep: '#047857',
+  accent: '#f97316',
+  sheetBg: 'rgba(248,250,252,0.96)',
+} as const;

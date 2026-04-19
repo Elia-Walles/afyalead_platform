@@ -18,7 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppToast } from '@/components/app-toast';
-import { APP_HERO_BACKGROUND_URI } from '@/constants/app-background';
+import { APP_HERO_BACKGROUND_URI, APP_HERO_GRADIENT_COLORS } from '@/constants/app-background';
 import { useMockApp } from '@/context/mock-app-context';
 
 /** AfyaLead green + white theme (replaces former blue). */
@@ -109,7 +109,7 @@ export default function LoginScreen() {
         transition={200}
       />
       <LinearGradient
-        colors={['rgba(6,30,24,0.45)', 'rgba(4,72,56,0.72)', 'rgba(4,56,46,0.88)']}
+        colors={[...APP_HERO_GRADIENT_COLORS]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}

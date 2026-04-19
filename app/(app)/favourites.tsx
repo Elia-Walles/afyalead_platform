@@ -1,20 +1,25 @@
+import { Screen, Surface } from '@/components/screen';
+import { palette, pamoja } from '@/constants/design-tokens';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { palette } from '@/constants/design-tokens';
+import { StyleSheet, Text } from 'react-native';
 
 export default function FavouritesScreen() {
-  const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 16 }]}>
-      <MaterialCommunityIcons name="star" size={48} color="#047857" />
-      <Text style={styles.title}>Favourites</Text>
-    </View>
+    <Screen title="Favourites" subtitle="Shortcuts you use most">
+      <Surface>
+        <MaterialCommunityIcons name="star" size={40} color={pamoja.accent} />
+        <Text style={styles.body}>Save favourites here for quicker access.</Text>
+      </Surface>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.bg, paddingHorizontal: 24, alignItems: 'center' },
-  title: { fontSize: 22, fontWeight: '800', color: '#0f172a', marginTop: 16 },
+  body: {
+    marginTop: 8,
+    fontSize: 15,
+    color: palette.muted,
+    fontWeight: '600',
+    lineHeight: 22,
+  },
 });

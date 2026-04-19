@@ -1,3 +1,5 @@
+import { AppHeroLayers } from '@/components/AppHeroLayers';
+import { APP_HERO_BACKGROUND_URI } from '@/constants/app-background';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -7,7 +9,7 @@ import { useMemo } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { APP_HERO_BACKGROUND_URI } from '@/constants/app-background';
+import { pamoja, palette } from '@/constants/design-tokens';
 import { PAMOJA_PROVIDER_LOGOS } from '@/constants/pamoja-provider-logos';
 import {
   PAMOJA_PROVIDER_ORDER,
@@ -15,8 +17,6 @@ import {
   useMockApp,
 } from '@/context/mock-app-context';
 
-const GREEN_DEEP = '#047857';
-const ORANGE = '#f97316';
 const TAB_BAR = 118;
 const GRID_GAP = 12;
 
@@ -49,18 +49,7 @@ export default function PamojaBimaHomeScreen() {
 
   return (
     <View style={styles.root}>
-      <Image
-        source={{ uri: APP_HERO_BACKGROUND_URI }}
-        style={styles.bgImage}
-        contentFit="cover"
-        transition={200}
-      />
-      <LinearGradient
-        colors={['rgba(6,30,24,0.55)', 'rgba(4,72,56,0.82)', 'rgba(4,48,40,0.92)']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
+      <AppHeroLayers />
       <View style={styles.mainColumn}>
         <LinearGradient
           colors={['rgba(4,120,87,0.35)', 'rgba(4,120,87,0.2)', 'transparent']}
@@ -154,7 +143,7 @@ export default function PamojaBimaHomeScreen() {
             <View style={styles.highlightsRow}>
               {HIGHLIGHTS.map((h) => (
                 <View key={h.label} style={styles.highlightPill}>
-                  <MaterialCommunityIcons name={h.icon} size={16} color={GREEN_DEEP} />
+                  <MaterialCommunityIcons name={h.icon} size={16} color={pamoja.greenDeep} />
                   <Text style={styles.highlightText}>{h.label}</Text>
                 </View>
               ))}
@@ -224,10 +213,7 @@ export default function PamojaBimaHomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: GREEN_DEEP,
-  },
-  bgImage: {
-    ...StyleSheet.absoluteFillObject,
+    backgroundColor: pamoja.greenDeep,
   },
   mainColumn: {
     flex: 1,
@@ -283,11 +269,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 4,
     borderRadius: 2,
-    backgroundColor: ORANGE,
+    backgroundColor: pamoja.accent,
   },
   sheet: {
     marginTop: -14,
-    backgroundColor: 'rgba(248,250,252,0.96)',
+    backgroundColor: pamoja.sheetBg,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     paddingHorizontal: 16,
@@ -316,10 +302,10 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: palette.border,
     ...Platform.select({
       ios: {
-        shadowColor: '#0f172a',
+        shadowColor: palette.ink,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.08,
         shadowRadius: 16,
@@ -336,7 +322,7 @@ const styles = StyleSheet.create({
   summaryKicker: {
     fontSize: 10,
     fontWeight: '900',
-    color: GREEN_DEEP,
+    color: pamoja.greenDeep,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
@@ -344,16 +330,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 17,
     fontWeight: '800',
-    color: '#0f172a',
+    color: palette.ink,
   },
   summarySub: {
     marginTop: 4,
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748b',
+    color: palette.muted,
   },
   afyaBadge: {
-    backgroundColor: ORANGE,
+    backgroundColor: pamoja.accent,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -386,13 +372,13 @@ const styles = StyleSheet.create({
   statNum: {
     fontSize: 22,
     fontWeight: '900',
-    color: GREEN_DEEP,
+    color: pamoja.greenDeep,
   },
   statLabel: {
     marginTop: 2,
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748b',
+    color: palette.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
@@ -426,7 +412,7 @@ const styles = StyleSheet.create({
   sectionEyebrow: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#64748b',
+    color: palette.muted,
     letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
@@ -434,7 +420,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 18,
     fontWeight: '900',
-    color: '#0f172a',
+    color: palette.ink,
     letterSpacing: -0.3,
   },
   grid: {
@@ -460,11 +446,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: palette.border,
     gap: 8,
     ...Platform.select({
       ios: {
-        shadowColor: '#0f172a',
+        shadowColor: palette.ink,
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.07,
         shadowRadius: 14,
@@ -500,7 +486,7 @@ const styles = StyleSheet.create({
   pkgLine: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748b',
+    color: palette.muted,
   },
   promoBanner: {
     flexShrink: 0,
@@ -509,7 +495,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: palette.border,
     zIndex: 1,
   },
   promoImg: {

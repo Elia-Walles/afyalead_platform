@@ -1,4 +1,5 @@
 import { Screen, Surface } from '@/components/screen';
+import { brand, pamoja, palette, radius } from '@/constants/design-tokens';
 import { useMockApp } from '@/context/mock-app-context';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -8,7 +9,7 @@ export default function MicrofinanceHomeScreen() {
   const roleOptions: ('group' | 'admin' | 'officer')[] = ['group', 'admin', 'officer'];
 
   return (
-    <Screen title="Microfinance">
+    <Screen title="Microfinance" subtitle="Loans, repayments & alerts">
       <Surface>
         <Text style={styles.sectionTitle}>Role</Text>
         <View style={styles.row}>
@@ -66,9 +67,9 @@ export default function MicrofinanceHomeScreen() {
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 16,
-    color: '#0E2A1A',
+    color: palette.ink,
   },
   row: {
     flexDirection: 'row',
@@ -76,39 +77,39 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   roleChip: {
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: '#C8E4D2',
+    borderColor: palette.border,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F5FCF7',
+    backgroundColor: brand.primarySoft,
   },
   roleChipActive: {
-    backgroundColor: '#1B8D4A',
-    borderColor: '#1B8D4A',
+    backgroundColor: brand.primary,
+    borderColor: brand.primaryDeep,
   },
   roleText: {
-    color: '#1B6940',
-    fontWeight: '600',
+    color: pamoja.greenDeep,
+    fontWeight: '700',
     fontSize: 12,
   },
   roleTextActive: {
     color: '#FFFFFF',
   },
   actionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    backgroundColor: pamoja.sheetBg,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#C8E4D2',
+    borderColor: 'rgba(255,255,255,0.55)',
     padding: 16,
   },
   actionTitle: {
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 17,
-    color: '#0E2A1A',
+    color: palette.ink,
   },
   smallText: {
-    color: '#4B6C59',
+    color: palette.muted,
     marginTop: 4,
     fontWeight: '600',
   },

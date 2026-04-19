@@ -6,11 +6,8 @@ import { type Href, useRouter } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HeaderSlideshow } from '@/components/banking/HeaderSlideshow';
-import { palette } from '@/constants/design-tokens';
-
-const GREEN_DEEP = '#047857';
-const ORANGE = '#f97316';
+import { APP_HERO_BACKGROUND_URI, APP_HERO_GRADIENT_COLORS } from '@/constants/app-background';
+import { pamoja, palette } from '@/constants/design-tokens';
 const TAB_BAR_SPACE = 118;
 const HEADER_BG_H = 248;
 const GRID_GAP = 12;
@@ -28,7 +25,7 @@ const PRODUCTS: {
     href: '/microfinance',
     title: 'Microfinance',
     icon: 'bank-outline',
-    accent: GREEN_DEEP,
+    accent: pamoja.greenDeep,
     iconBg: 'rgba(4,120,87,0.14)',
   },
   {
@@ -36,7 +33,7 @@ const PRODUCTS: {
     href: '/pamoja-bima',
     title: 'Pamoja Bima',
     icon: 'shield-check-outline',
-    accent: ORANGE,
+    accent: pamoja.accent,
     iconBg: 'rgba(249,115,22,0.14)',
   },
 ];
@@ -99,9 +96,14 @@ export default function AppHomeScreen() {
       >
         <View style={styles.headerBlock}>
           <View style={styles.headerBackdrop}>
-            <HeaderSlideshow height={HEADER_BG_H} />
+            <Image
+              source={{ uri: APP_HERO_BACKGROUND_URI }}
+              style={StyleSheet.absoluteFillObject}
+              contentFit="cover"
+              transition={200}
+            />
             <LinearGradient
-              colors={['rgba(6,95,70,0.35)', 'rgba(4,120,87,0.85)', GREEN_DEEP]}
+              colors={[...APP_HERO_GRADIENT_COLORS]}
               style={StyleSheet.absoluteFill}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
@@ -195,7 +197,7 @@ export default function AppHomeScreen() {
                     <MaterialCommunityIcons
                       name={s.icon}
                       size={22}
-                      color={s.product === 'mf' ? GREEN_DEEP : ORANGE}
+                      color={s.product === 'mf' ? pamoja.greenDeep : pamoja.accent}
                     />
                     <Text style={styles.shortcutLabel} numberOfLines={2}>
                       {s.label}
@@ -208,13 +210,7 @@ export default function AppHomeScreen() {
         </View>
 
         <Pressable style={[styles.promoBanner, { marginHorizontal: contentPad }]} onPress={() => open('/microfinance')}>
-          <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
-            }}
-            style={styles.promoImg}
-            contentFit="cover"
-          />
+          <Image source={{ uri: APP_HERO_BACKGROUND_URI }} style={styles.promoImg} contentFit="cover" />
           <LinearGradient
             colors={['transparent', 'rgba(4,72,56,0.88)']}
             style={styles.promoOverlay}
@@ -234,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.bg,
   },
   headerBlock: {
-    backgroundColor: GREEN_DEEP,
+    backgroundColor: pamoja.greenDeep,
     paddingBottom: 20,
     position: 'relative',
   },
@@ -306,7 +302,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     height: 3,
     width: '100%',
-    backgroundColor: ORANGE,
+    backgroundColor: pamoja.accent,
     borderRadius: 2,
   },
   accountCard: {
@@ -338,7 +334,7 @@ const styles = StyleSheet.create({
   accountNumber: {
     fontSize: 18,
     fontWeight: '800',
-    color: GREEN_DEEP,
+    color: pamoja.greenDeep,
     letterSpacing: 0.5,
   },
   accountType: {
@@ -348,7 +344,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   logoBadge: {
-    backgroundColor: ORANGE,
+    backgroundColor: pamoja.accent,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
