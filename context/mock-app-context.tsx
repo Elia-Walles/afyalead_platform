@@ -5,6 +5,18 @@ import {
   britamPackageLabel,
   calculateBritamPremium,
 } from '@/constants/britam-quote-products';
+import {
+  type BritamAddOn,
+  type BritamCoverageDetails,
+  type BritamFamilyMember,
+  type BritamMobileProduct,
+  type BritamPolicy,
+  type BritamQuote,
+  BRITAM_ADD_ONS,
+  BRITAM_MOBILE_PRODUCTS,
+  PAYMENT_FREQUENCY_MULTIPLIERS,
+  calculateBritamPremium as calculateMobilePremium,
+} from '@/constants/britam-mobile-products';
 import React, { createContext, useContext, useMemo, useState } from 'react';
 
 export type InsuranceProviderId = 'nhif' | 'jubilee' | 'britam' | 'assemble';
@@ -150,6 +162,20 @@ type MockAppContextValue = {
   payQuote: (quoteId: string, method: 'mobile_money' | 'card' | 'bank') => InsurancePolicy | null;
   completeKyc: (policyId: string) => void;
   submitClaim: (policyNumber: string, amount: number, reason: string) => void;
+  // BRITAM Mobile-specific functions
+  britamMobileQuotes: BritamQuote[];
+  britamMobilePolicies: BritamPolicy[];
+  createBritamMobileQuote: (input: {
+    product: BritamMobileProduct;
+    coverageDetails: BritamCoverageDetails;
+    status: 'draft' | 'pending';
+  }) => BritamQuote | null;
+  saveBritamMobileDraft: (quoteId: string) => void;
+  loadBritamMobileDraft: (quoteId: string) => BritamQuote | null;
+  submitBritamMobileQuote: (quoteId: string) => void;
+  processBritamMobilePayment: (quoteId: string, method: 'mobile_money' | 'card') => BritamPolicy | null;
+  getBritamMobileDrafts: () => BritamQuote[];
+  getBritamMobilePolicies: () => BritamPolicy[];
 };
 
 const MockAppContext = createContext<MockAppContextValue | null>(null);
@@ -174,6 +200,128 @@ export function MockAppProvider({ children }: { children: React.ReactNode }) {
   const [payments, setPayments] = useState<InsurancePayment[]>([]);
   const [claims, setClaims] = useState<InsuranceClaim[]>([
     { id: 'cl-1', policyNumber: 'POL-948222', amount: 280000, reason: 'Outpatient reimbursement', status: 'processing' },
+  ]);
+  // BRITAM Mobile-specific state
+  const [britamMobileQuotes, setBritamMobileQuotes] = useState<BritamQuote[]>([
+    {
+      id: 'britam-quote-1',
+      productName: 'Poa',
+      productVariant: 'Individual',
+      status: 'draft',
+      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+      expiresAt: null,
+      customerId: 'customer-1',
+      coverageDetails: {
+        productName: 'Poa',
+        productVariant: 'Individual',
+        familyMembers: [],
+        addOns: ['dental', 'optical'],
+        paymentFrequency: 'annual',
+      },
+      premium: 120000,
+      sumInsured: 5000000,
+    },
+    {
+      id: 'britam-quote-2',
+      productName: 'Imara',
+      productVariant: 'Family',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      expiresAt: null,
+      customerId: 'customer-1',
+      coverageDetails: {
+        productName: 'Imara',
+        productVariant: 'Family',
+        familyMembers: [
+          { id: 'mem-1', name: 'Jane Smith', relationship: 'spouse', dateOfBirth: '1985-05-20', gender: 'female' },
+          { id: 'mem-2', name: 'Tom Smith', relationship: 'spouse', dateOfBirth: '1987-08-10', gender: 'male' },
+          { id: 'mem-3', name: 'Lily Smith', relationship: 'child', dateOfBirth: '2015-03-12', gender: 'female' },
+        ],
+        addOns: ['maternity'],
+        paymentFrequency: 'semi-annual',
+      },
+      premium: 450000,
+      sumInsured: 15000000,
+    },
+  ]);
+  const [britamMobilePolicies, setBritamMobilePolicies] = useState<BritamPolicy[]>([
+    {
+      id: 'britam-policy-1',
+      policyNumber: 'BRITAM-2024-001234',
+      productName: 'Poa',
+      productVariant: 'Individual',
+      status: 'active',
+      issueDate: new Date(Date.now() - 86400000 * 30).toISOString(),
+      startDate: new Date(Date.now() - 86400000 * 30).toISOString(),
+      endDate: new Date(Date.now() + 86400000 * 335).toISOString(),
+      premium: 120000,
+      sumInsured: 5000000,
+      paymentFrequency: 'annual',
+      paymentMethod: 'mobile_money',
+      familyMembers: [
+        { id: 'mem-1', name: 'Demo Customer', relationship: 'self', dateOfBirth: '1990-01-15', membershipNumber: 'BRITAM-001', status: 'active' },
+      ],
+      benefits: [
+        { name: 'Inpatient', limit: 'TZS 5,000,000', used: 'TZS 0', remaining: 'TZS 5,000,000' },
+        { name: 'Outpatient', limit: 'TZS 500,000', used: 'TZS 50,000', remaining: 'TZS 450,000' },
+        { name: 'Dental', limit: 'TZS 100,000', used: 'TZS 20,000', remaining: 'TZS 80,000' },
+        { name: 'Optical', limit: 'TZS 100,000', used: 'TZS 0', remaining: 'TZS 100,000' },
+      ],
+      customerId: 'customer-1',
+      quoteId: 'britam-quote-1',
+    },
+    {
+      id: 'britam-policy-2',
+      policyNumber: 'BRITAM-2024-005678',
+      productName: 'Imara',
+      productVariant: 'Family',
+      status: 'active',
+      issueDate: new Date(Date.now() - 86400000 * 90).toISOString(),
+      startDate: new Date(Date.now() - 86400000 * 90).toISOString(),
+      endDate: new Date(Date.now() + 86400000 * 275).toISOString(),
+      premium: 450000,
+      sumInsured: 15000000,
+      paymentFrequency: 'semi-annual',
+      paymentMethod: 'mobile_money',
+      familyMembers: [
+        { id: 'mem-1', name: 'Alice Johnson', relationship: 'self', dateOfBirth: '1982-03-25', membershipNumber: 'BRITAM-002', status: 'active' },
+        { id: 'mem-2', name: 'Bob Johnson', relationship: 'spouse', dateOfBirth: '1984-07-14', membershipNumber: 'BRITAM-003', status: 'active' },
+        { id: 'mem-3', name: 'Charlie Johnson', relationship: 'child', dateOfBirth: '2012-09-01', membershipNumber: 'BRITAM-004', status: 'active' },
+        { id: 'mem-4', name: 'Diana Johnson', relationship: 'child', dateOfBirth: '2016-04-15', membershipNumber: 'BRITAM-005', status: 'active' },
+      ],
+      benefits: [
+        { name: 'Inpatient', limit: 'TZS 15,000,000', used: 'TZS 200,000', remaining: 'TZS 14,800,000' },
+        { name: 'Outpatient', limit: 'TZS 1,000,000', used: 'TZS 150,000', remaining: 'TZS 850,000' },
+        { name: 'Maternity', limit: 'TZS 500,000', used: 'TZS 0', remaining: 'TZS 500,000' },
+        { name: 'Dental', limit: 'TZS 200,000', used: 'TZS 30,000', remaining: 'TZS 170,000' },
+      ],
+      customerId: 'customer-1',
+      quoteId: 'britam-quote-2',
+    },
+    {
+      id: 'britam-policy-3',
+      policyNumber: 'BRITAM-2023-009999',
+      productName: 'Super',
+      productVariant: 'Family',
+      status: 'expired',
+      issueDate: new Date(Date.now() - 86400000 * 400).toISOString(),
+      startDate: new Date(Date.now() - 86400000 * 400).toISOString(),
+      endDate: new Date(Date.now() - 86400000 * 35).toISOString(),
+      premium: 800000,
+      sumInsured: 30000000,
+      paymentFrequency: 'annual',
+      paymentMethod: 'card',
+      familyMembers: [
+        { id: 'mem-1', name: 'Mark Wilson', relationship: 'self', dateOfBirth: '1978-11-30', membershipNumber: 'BRITAM-006', status: 'inactive' },
+        { id: 'mem-2', name: 'Sarah Wilson', relationship: 'spouse', dateOfBirth: '1980-02-28', membershipNumber: 'BRITAM-007', status: 'inactive' },
+      ],
+      benefits: [
+        { name: 'Inpatient', limit: 'TZS 30,000,000', used: 'TZS 5,000,000', remaining: 'TZS 25,000,000' },
+        { name: 'Outpatient', limit: 'TZS 2,000,000', used: 'TZS 800,000', remaining: 'TZS 1,200,000' },
+      ],
+      customerId: 'customer-1',
+      quoteId: 'britam-quote-3',
+    },
   ]);
 
   const createQuote: MockAppContextValue['createQuote'] = (providerId, packageId, membersCount) => {
@@ -280,6 +428,100 @@ export function MockAppProvider({ children }: { children: React.ReactNode }) {
     ]);
   };
 
+  // BRITAM Mobile-specific functions
+  const createBritamMobileQuote: MockAppContextValue['createBritamMobileQuote'] = ({
+    product,
+    coverageDetails,
+    status,
+  }) => {
+    const { premium, sumInsured } = calculateMobilePremium(product, coverageDetails);
+    const quote: BritamQuote = {
+      id: makeRef('BMQ'),
+      productName: product.name,
+      productVariant: product.variant,
+      premium,
+      sumInsured,
+      coverageDetails,
+      status,
+      createdAt: toIsoDate(),
+      expiresAt: status === 'draft' ? toIsoDate(30) : null,
+      customerId: 'demo-customer',
+    };
+    setBritamMobileQuotes((prev) => [quote, ...prev]);
+    return quote;
+  };
+
+  const saveBritamMobileDraft: MockAppContextValue['saveBritamMobileDraft'] = (quoteId) => {
+    setBritamMobileQuotes((prev) =>
+      prev.map((q) =>
+        q.id === quoteId ? { ...q, status: 'draft', expiresAt: toIsoDate(30) } : q
+      )
+    );
+  };
+
+  const loadBritamMobileDraft: MockAppContextValue['loadBritamMobileDraft'] = (quoteId) => {
+    return britamMobileQuotes.find((q) => q.id === quoteId) || null;
+  };
+
+  const submitBritamMobileQuote: MockAppContextValue['submitBritamMobileQuote'] = (quoteId) => {
+    setBritamMobileQuotes((prev) =>
+      prev.map((q) =>
+        q.id === quoteId ? { ...q, status: 'pending', expiresAt: null } : q
+      )
+    );
+  };
+
+  const processBritamMobilePayment: MockAppContextValue['processBritamMobilePayment'] = (
+    quoteId,
+    method
+  ) => {
+    const quote = britamMobileQuotes.find((q) => q.id === quoteId);
+    if (!quote) return null;
+
+    // Create policy from quote
+    const policy: BritamPolicy = {
+      id: makeRef('BMP'),
+      policyNumber: makeRef('POL'),
+      productName: quote.productName,
+      productVariant: quote.productVariant,
+      status: 'active',
+      issueDate: toIsoDate(),
+      startDate: toIsoDate(1),
+      endDate: toIsoDate(365),
+      sumInsured: quote.sumInsured,
+      premium: quote.premium,
+      paymentFrequency: quote.coverageDetails.paymentFrequency,
+      paymentMethod: method === 'mobile_money' ? 'Mobile Money' : 'Card',
+      familyMembers: quote.coverageDetails.familyMembers.map((m) => ({
+        id: makeRef('MEM'),
+        name: m.name,
+        relationship: m.relationship,
+        dateOfBirth: m.dateOfBirth,
+        membershipNumber: makeRef('MEM'),
+        status: 'active',
+      })),
+      benefits: [
+        { name: 'Inpatient', limit: `${quote.sumInsured}`, used: '0', remaining: `${quote.sumInsured}` },
+        { name: 'Outpatient', limit: 'Unlimited', used: '0', remaining: 'Unlimited' },
+      ],
+      customerId: quote.customerId,
+      quoteId,
+    };
+
+    setBritamMobilePolicies((prev) => [policy, ...prev]);
+    setBritamMobileQuotes((prev) => prev.map((q) => (q.id === quoteId ? { ...q, status: 'approved' } : q)));
+
+    return policy;
+  };
+
+  const getBritamMobileDrafts: MockAppContextValue['getBritamMobileDrafts'] = () => {
+    return britamMobileQuotes.filter((q) => q.status === 'draft');
+  };
+
+  const getBritamMobilePolicies: MockAppContextValue['getBritamMobilePolicies'] = () => {
+    return britamMobilePolicies;
+  };
+
   const value = useMemo(
     () => ({
       providers,
@@ -296,8 +538,18 @@ export function MockAppProvider({ children }: { children: React.ReactNode }) {
       payQuote,
       completeKyc,
       submitClaim,
+      // BRITAM Mobile
+      britamMobileQuotes,
+      britamMobilePolicies,
+      createBritamMobileQuote,
+      saveBritamMobileDraft,
+      loadBritamMobileDraft,
+      submitBritamMobileQuote,
+      processBritamMobilePayment,
+      getBritamMobileDrafts,
+      getBritamMobilePolicies,
     }),
-    [claims, memberPin, payments, policies, quotes, selectedRole]
+    [claims, memberPin, payments, policies, quotes, selectedRole, britamMobileQuotes, britamMobilePolicies]
   );
 
   return <MockAppContext.Provider value={value}>{children}</MockAppContext.Provider>;

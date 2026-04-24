@@ -1,5 +1,5 @@
 import { AppHeroLayers } from '@/components/AppHeroLayers';
-import { APP_HERO_BACKGROUND_URI } from '@/constants/app-background';
+import { APP_HERO_BACKGROUND_SOURCE } from '@/constants/app-background';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -16,6 +16,7 @@ import {
   type InsuranceProvider,
   useMockApp,
 } from '@/context/mock-app-context';
+import { useResponsive } from '@/utils/responsive';
 
 const TAB_BAR = 118;
 const GRID_GAP = 12;
@@ -29,6 +30,7 @@ const HIGHLIGHTS: { icon: keyof typeof MaterialCommunityIcons.glyphMap; label: s
 export default function PamojaBimaHomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const responsive = useResponsive();
   const { providers, policies, quotes, claims } = useMockApp();
 
   const orderedProviders = useMemo(() => {
@@ -39,12 +41,21 @@ export default function PamojaBimaHomeScreen() {
 
   const openProvider = (id: string) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/pamoja-bima/provider/${id}`);
+    if (id === 'britam') {
+      router.push('/pamoja-bima/britam/quote');
+    } else {
+      router.push({ pathname: '/pamoja-bima/quote/[id]', params: { id } });
+    }
   };
 
   const statNav = (path: '/pamoja-bima/policies' | '/pamoja-bima/quotes' | '/pamoja-bima/claims') => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(path);
+    // Route to BRITAM-specific screens for policies
+    if (path === '/pamoja-bima/policies') {
+      router.push('/pamoja-bima/britam/policies');
+    } else {
+      router.push(path);
+    }
   };
 
   return (
@@ -188,11 +199,7 @@ export default function PamojaBimaHomeScreen() {
                 router.push('/pamoja-bima/quotes');
               }}
             >
-              <Image
-                source={{ uri: APP_HERO_BACKGROUND_URI }}
-                style={styles.promoImg}
-                contentFit="cover"
-              />
+              <Image source={APP_HERO_BACKGROUND_SOURCE} style={styles.promoImg} contentFit="cover" />
               <LinearGradient
                 colors={['transparent', 'rgba(4,72,56,0.9)']}
                 style={styles.promoOverlay}
