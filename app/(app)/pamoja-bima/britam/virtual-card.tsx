@@ -3,6 +3,7 @@ import { gradientPrimary, pamoja, palette, radius } from '@/constants/design-tok
 import { useMockApp } from '@/context/mock-app-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -42,16 +43,46 @@ export default function BritamVirtualCardScreen() {
     );
   }
 
-  const handlePickPhoto = () => {
+  const handlePickPhoto = async () => {
     void Haptics.selectionAsync();
-    // TODO: Implement photo picker when expo-image-picker is installed
-    alert('Photo picker requires expo-image-picker package. Install with: npx expo install expo-image-picker');
+    
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Sorry, we need camera roll permissions to make this work!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      setCustomerPhoto(result.assets[0].uri);
+    }
   };
 
-  const handleTakePhoto = () => {
+  const handleTakePhoto = async () => {
     void Haptics.selectionAsync();
-    // TODO: Implement camera when expo-image-picker is installed
-    alert('Camera requires expo-image-picker package. Install with: npx expo install expo-image-picker');
+    
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Sorry, we need camera permissions to make this work!');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      setCustomerPhoto(result.assets[0].uri);
+    }
   };
 
   const handleDownloadCard = async () => {

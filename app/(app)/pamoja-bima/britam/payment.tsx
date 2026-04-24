@@ -27,13 +27,12 @@ export default function BritamPaymentScreen() {
   const params = useLocalSearchParams<{ quoteId: string }>();
   const { processBritamMobilePayment } = useMockApp();
   
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('mpesa');
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handlePayment = async () => {
     if (isProcessing) return;
@@ -58,39 +57,12 @@ export default function BritamPaymentScreen() {
       
       if (policy) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setShowSuccess(true);
+        router.replace({ pathname: '/pamoja-bima/britam/payment-success', params: { policyId: policy.id } });
       } else {
         alert('Payment failed. Please try again.');
       }
     }, 2000);
   };
-
-  const handleSuccess = () => {
-    router.replace('/pamoja-bima/policies');
-  };
-
-  if (showSuccess) {
-    return (
-      <View style={styles.root}>
-        <StatusBar style="light" />
-        <AppHeroLayers />
-        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-          <View style={styles.successContainer}>
-            <View style={styles.successIcon}>
-              <MaterialCommunityIcons name="check-circle" size={80} color={pamoja.greenDeep} />
-            </View>
-            <Text style={styles.successTitle}>Payment Successful!</Text>
-            <Text style={styles.successText}>Your policy has been activated.</Text>
-            <Pressable style={styles.successBtn} onPress={handleSuccess}>
-              <LinearGradient colors={[...gradientPrimary]} style={styles.successBtnGradient}>
-                <Text style={styles.successBtnText}>View My Policies</Text>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.root}>
@@ -373,41 +345,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: palette.muted,
-  },
-  successContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  successIcon: {
-    marginBottom: 24,
-  },
-  successTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  successText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  successBtn: {
-    borderRadius: radius.sm,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  successBtnGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  successBtnText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
   },
 });
